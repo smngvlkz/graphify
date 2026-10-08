@@ -451,6 +451,9 @@ dist/
 !src/**
 ```
 
+After a broad pattern such as `*`, re-include a directory and its contents
+with both `!dir/` and `!dir/**`.
+
 ---
 
 ## Team setup

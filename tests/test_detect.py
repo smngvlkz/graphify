@@ -185,6 +185,32 @@ def test_graphifyignore_excludes_file(tmp_path):
     assert result["graphifyignore_patterns"] == 2
 
 
+def test_graphifyignore_bare_patterns_match_entry_name_only(tmp_path):
+    """Bare patterns follow gitignore semantics and do not cross path segments."""
+    github_file = tmp_path / ".github/scripts/release.py"
+    nested_test = tmp_path / "test_helpers/util.py"
+    nested_doc = tmp_path / "docs/api.md"
+    tags_file = tmp_path / "src/tags/handler.py"
+    vendor_file = tmp_path / "vendor/a.py"
+    for path in (github_file, nested_test, nested_doc, tags_file, vendor_file):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("content\n", encoding="utf-8")
+
+    assert not _is_ignored(
+        nested_test, tmp_path, [(tmp_path, "test_*.py")]
+    )
+    assert not _is_ignored(nested_doc, tmp_path, [(tmp_path, "doc*.md")])
+    assert not _is_ignored(
+        github_file, tmp_path, [(tmp_path, ".*"), (tmp_path, "!.github/")]
+    )
+    assert not _is_ignored(
+        tags_file, tmp_path, [(tmp_path, "tags"), (tmp_path, "!tags/")]
+    )
+    assert _is_ignored(
+        vendor_file, tmp_path, [(tmp_path, "*.py"), (tmp_path, "!vendor")]
+    )
+
+
 def test_graphifyignore_matches_nfd_path_with_nfc_pattern(tmp_path):
     """An accented pattern excludes its directory even when the FS stores NFD.
 
